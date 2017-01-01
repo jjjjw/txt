@@ -9,6 +9,7 @@ import (
 )
 
 func GetPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// TODO middleware
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	post := &models.Post{
@@ -28,10 +29,11 @@ func GetPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 func GetPosts(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	// TODO middleware
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	posts := &models.Posts{
-		Data: []*models.Post{
+		Posts: []*models.Post{
 			{"1", "hello world"},
 		},
 	}

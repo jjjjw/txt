@@ -8,5 +8,5 @@ message Post {
 }
 
 message Posts {
-  repeated Post data = 1;
+  repeated Post posts = 1;
 }

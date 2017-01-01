@@ -1,6 +1,9 @@
 import AppComponent from '../components/App'
 import React, { Component } from 'react'
 
+// Cannot use ES6 imports yet
+var models = require('../../models/models_pb')
+
 const HOST = 'http://localhost:8008'
 
 class App extends Component {
@@ -20,14 +23,12 @@ class App extends Component {
 
     return fetch(`${HOST}/api/posts`)
       .then(res => {
-        return res.text()
+        return res.arrayBuffer()
       })
-      .then(posts => {
-        debugger
-        console.log(posts)
+      .then(buffer => {
         this.setState({
           loading: false,
-          posts
+          posts: models.Posts.deserializeBinary(buffer)
         })
       })
       .catch(err => {
@@ -37,8 +38,8 @@ class App extends Component {
   }
 
   render() {
-    if (this.state.loading) {
-      return <AppComponent posts={this.state.posts} />
+    if (!this.state.loading) {
+      return <AppComponent posts={this.state.posts.getPostsList()} />
     } else {
       return <div>Loading</div>
     }

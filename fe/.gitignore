@@ -9,6 +9,9 @@ coverage
 # production
 build
 
+# Generated protobuf
+models/*.js
+
 # misc
 .DS_Store
 .env

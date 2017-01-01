@@ -62,7 +62,7 @@ func TestGetPosts(t *testing.T) {
 		t.Fail()
 	}
 
-	post := posts.Data[0]
+	post := posts.Posts[0]
 
 	if post.Id != "1" {
 		t.Fail()
