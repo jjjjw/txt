@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package models;
+
+message Post {
+  string id = 1;
+  string contents = 2;
+}
+
+message Posts {
+  repeated Post data = 1;
+}
