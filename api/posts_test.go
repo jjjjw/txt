@@ -7,6 +7,7 @@ import (
 	"github.com/zjjw/txt/models"
 	"net/http/httptest"
 	"testing"
+	"bytes"
 )
 
 func TestGetPost(t *testing.T) {
@@ -63,6 +64,44 @@ func TestGetPosts(t *testing.T) {
 	}
 
 	post := posts.Posts[0]
+
+	if post.Id != "1" {
+		t.Fail()
+	}
+
+	if post.Contents != "hello world" {
+		t.Fail()
+	}
+}
+
+func TestNewPost(t *testing.T) {
+	ps := httprouter.Params{}
+
+	sendPost := &models.Post{"1", "hello world"}
+	data, marshalErr := proto.Marshal(sendPost)
+	if marshalErr != nil {
+		t.Fail()
+	}
+
+	r := bytes.NewReader(data)
+
+	req := httptest.NewRequest("POST", "http://example.com/foo", r)
+	w := httptest.NewRecorder()
+
+	api.NewPost(w, req, ps)
+
+	t.Logf("%d - %s", w.Code, w.Body.String())
+
+	if w.Code != 200 {
+		t.Fail()
+	}
+
+	post := &models.Post{}
+	err := proto.Unmarshal(w.Body.Bytes(), post)
+
+	if err != nil {
+		t.Fail()
+	}
 
 	if post.Id != "1" {
 		t.Fail()

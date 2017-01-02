@@ -8,14 +8,26 @@ import (
 	"time"
 )
 
+func CORS(handler http.Handler) http.Handler {
+	wrapped := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		handler.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(wrapped)
+}
+
 func main() {
 	router := httprouter.New()
+
 	router.GET("/api/posts/:id", api.GetPost)
 	router.GET("/api/posts", api.GetPosts)
+	router.POST("/api/posts", api.NewPost)
+
+	handler := CORS(router)
 
 	s := &http.Server{
 		Addr:         ":8008",
-		Handler:      router,
+		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
