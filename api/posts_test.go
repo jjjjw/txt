@@ -1,13 +1,13 @@
 package api_test
 
 import (
+	"bytes"
 	"github.com/golang/protobuf/proto"
 	"github.com/julienschmidt/httprouter"
 	"github.com/zjjw/txt/api"
 	"github.com/zjjw/txt/models"
 	"net/http/httptest"
 	"testing"
-	"bytes"
 )
 
 func TestGetPost(t *testing.T) {

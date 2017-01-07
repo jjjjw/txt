@@ -22,6 +22,7 @@ func main() {
 	router.GET("/api/posts/:id", api.GetPost)
 	router.GET("/api/posts", api.GetPosts)
 	router.POST("/api/posts", api.NewPost)
+	router.GET("/ws", api.WS)
 
 	handler := CORS(router)
 

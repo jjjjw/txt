@@ -1,10 +1,12 @@
-import TimelineComponent from '../components/Timeline'
+import Immutable from 'immutable'
 import React, { Component } from 'react'
+import TimelineComponent from '../components/Timeline'
 
 // Cannot use ES6 imports yet
 var models = require('../../models/models_pb')
 
-const HOST = 'http://localhost:8008'
+const SCHEME = 'http://'
+const HOST = 'localhost:8008'
 
 class Timeline extends Component {
   constructor(props) {
@@ -12,10 +14,11 @@ class Timeline extends Component {
 
     this.state = {
       loading: true,
-      posts: []
+      posts: Immutable.List()
     }
 
     this.newPost = this.newPost.bind(this)
+    this.onMessage = this.onMessage.bind(this)
   }
 
   fetchPosts () {
@@ -23,20 +26,49 @@ class Timeline extends Component {
       loading: true
     })
 
-    return fetch(`${HOST}/api/posts`)
+    return fetch(`${SCHEME}${HOST}/api/posts`)
       .then(res => {
         return res.arrayBuffer()
       })
       .then(buffer => {
+        let posts = models.Posts.deserializeBinary(buffer).getPostsList()
+        posts = this.state.posts.push(...posts)
+
         this.setState({
           loading: false,
-          posts: models.Posts.deserializeBinary(buffer)
+          posts
         })
       })
       .catch(err => {
         console.log(err)
         throw err
       })
+  }
+
+  openStream () {
+    this.socket = new WebSocket(`ws://${HOST}/ws`)
+    this.socket.binaryType = 'arraybuffer'
+
+    this.socket.onmessage = this.onMessage
+  }
+
+  onMessage (event) {
+    const buffer = event.data
+
+    // Only one message type for now
+    const post = models.Post.deserializeBinary(buffer)
+    const posts = this.state.posts.push(post)
+
+    this.setState({
+      posts
+    })
+  }
+
+  closeStream () {
+    if (this.socket) {
+      this.socket.close()
+      this.socket = null
+    }
   }
 
   newPost (contents) {
@@ -46,19 +78,20 @@ class Timeline extends Component {
 
     const newPost = new models.Post(["", contents])
 
-    return fetch(`${HOST}/api/posts`, {
-      method: 'POST',
-      body: newPost.serializeBinary()
+    return fetch(`${SCHEME}${HOST}/api/posts`, {
+        method: 'POST',
+        body: newPost.serializeBinary()
       })
       .then(res => {
         return res.arrayBuffer()
       })
       .then(buffer => {
-        this.state.posts.addPosts(models.Post.deserializeBinary(buffer), 0)
+        const post = models.Post.deserializeBinary(buffer)
+        const posts = this.state.posts.push(post)
 
         this.setState({
           loading: false,
-          posts: this.state.posts
+          posts
         })
       })
       .catch(err => {
@@ -69,7 +102,7 @@ class Timeline extends Component {
 
   render() {
     if (!this.state.loading) {
-      return <TimelineComponent posts={this.state.posts.getPostsList()} newPost={this.newPost} />
+      return <TimelineComponent posts={this.state.posts} newPost={this.newPost} />
     } else {
       return <div>Loading</div>
     }
@@ -77,6 +110,11 @@ class Timeline extends Component {
 
   componentWillMount() {
     this.fetchPosts()
+    this.openStream()
+  }
+
+  componentWillUnmount() {
+    this.closeStream()
   }
 }
 
