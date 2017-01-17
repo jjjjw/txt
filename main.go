@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/zjjw/txt/api"
+	"github.com/zjjw/txt/models"
 	"log"
 	"net/http"
 	"time"
@@ -19,10 +20,13 @@ func CORS(handler http.Handler) http.Handler {
 func main() {
 	router := httprouter.New()
 
+	// A message has a post that has been created.
+	created := make(chan *models.Post)
+
 	router.GET("/api/posts/:id", api.GetPost)
 	router.GET("/api/posts", api.GetPosts)
-	router.POST("/api/posts", api.NewPost)
-	router.GET("/ws", api.WS)
+	router.POST("/api/posts", api.NewPost(created))
+	router.GET("/ws", api.WS(created))
 
 	handler := CORS(router)
 

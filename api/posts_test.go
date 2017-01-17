@@ -88,8 +88,25 @@ func TestNewPost(t *testing.T) {
 	req := httptest.NewRequest("POST", "http://example.com/foo", r)
 	w := httptest.NewRecorder()
 
-	api.NewPost(w, req, ps)
+	created := make(chan *models.Post)
 
+	h := api.NewPost(created)
+
+	// Create the post
+	go func() { h(w, req, ps) }()
+
+	// Wait for the created message
+	message := <-created
+
+	if message.Id != "1" {
+		t.Fail()
+	}
+
+	if message.Contents != "hello world" {
+		t.Fail()
+	}
+
+	// Assert that the response is good
 	t.Logf("%d - %s", w.Code, w.Body.String())
 
 	if w.Code != 200 {

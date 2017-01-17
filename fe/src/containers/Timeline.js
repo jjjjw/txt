@@ -76,7 +76,7 @@ class Timeline extends Component {
       loading: true
     })
 
-    const newPost = new models.Post(["", contents])
+    const newPost = new models.Post(['self', contents])
 
     return fetch(`${SCHEME}${HOST}/api/posts`, {
         method: 'POST',
