@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/julienschmidt/httprouter"
 	"github.com/zjjw/txt/api"
 	"github.com/zjjw/txt/models"
@@ -17,18 +18,26 @@ func CORS(handler http.Handler) http.Handler {
 	return http.HandlerFunc(wrapped)
 }
 
-func main() {
-	router := httprouter.New()
-
+func AddContext(handler http.Handler) http.Handler {
 	// A message has a post that has been created.
 	created := make(chan *models.Post)
 
+	wrapped := func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), "created_chan", created)
+		handler.ServeHTTP(w, r.WithContext(ctx))
+	}
+	return http.HandlerFunc(wrapped)
+}
+
+func main() {
+	router := httprouter.New()
+
 	router.GET("/api/posts/:id", api.GetPost)
 	router.GET("/api/posts", api.GetPosts)
-	router.POST("/api/posts", api.NewPost(created))
-	router.GET("/ws", api.WS(created))
+	router.POST("/api/posts", api.NewPost)
+	router.GET("/ws", api.WS)
 
-	handler := CORS(router)
+	handler := AddContext(CORS(router))
 
 	s := &http.Server{
 		Addr:         ":8008",

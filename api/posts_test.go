@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"bytes"
+	"context"
 	"github.com/golang/protobuf/proto"
 	"github.com/julienschmidt/httprouter"
 	"github.com/zjjw/txt/api"
@@ -90,10 +91,10 @@ func TestNewPost(t *testing.T) {
 
 	created := make(chan *models.Post)
 
-	h := api.NewPost(created)
+	ctx := context.WithValue(req.Context(), "created_chan", created)
 
 	// Create the post
-	go func() { h(w, req, ps) }()
+	go func() { api.NewPost(w, req.WithContext(ctx), ps) }()
 
 	// Wait for the created message
 	message := <-created

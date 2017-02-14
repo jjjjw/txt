@@ -15,19 +15,35 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-func WS(cp chan *models.Post) func(http.ResponseWriter, *http.Request, httprouter.Params) {
-	return func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-		conn, connErr := upgrader.Upgrade(w, r, nil)
-		if connErr != nil {
-			log.Fatal(connErr)
-		}
+func WS(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	conn, connErr := upgrader.Upgrade(w, r, nil)
+	if connErr != nil {
+		log.Fatal(connErr)
+	}
 
-		post := &models.Post{
-			Id:       "2",
-			Contents: "hello websocket world",
-		}
+	post := &models.Post{
+		Id:       "2",
+		Contents: "hello websocket world",
+	}
 
-		data, marshalErr := proto.Marshal(post)
+	data, marshalErr := proto.Marshal(post)
+	if marshalErr != nil {
+		log.Fatal(marshalErr)
+	}
+
+	writeErr := conn.WriteMessage(websocket.BinaryMessage, data)
+	if writeErr != nil {
+		log.Fatal(writeErr)
+	}
+
+	cp, ok := r.Context().Value("created_chan").(chan *models.Post)
+	if ok == false {
+		log.Fatal("Failed to get channel")
+	}
+
+	// Consume the created posts channel
+	for p := range cp {
+		data, marshalErr := proto.Marshal(p)
 		if marshalErr != nil {
 			log.Fatal(marshalErr)
 		}
@@ -35,19 +51,6 @@ func WS(cp chan *models.Post) func(http.ResponseWriter, *http.Request, httproute
 		writeErr := conn.WriteMessage(websocket.BinaryMessage, data)
 		if writeErr != nil {
 			log.Fatal(writeErr)
-		}
-
-		// Consume the created posts channel
-		for p := range cp {
-			data, marshalErr := proto.Marshal(p)
-			if marshalErr != nil {
-				log.Fatal(marshalErr)
-			}
-
-			writeErr := conn.WriteMessage(websocket.BinaryMessage, data)
-			if writeErr != nil {
-				log.Fatal(writeErr)
-			}
 		}
 	}
 }
