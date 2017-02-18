@@ -57,11 +57,8 @@ class Timeline extends Component {
 
     // Only one message type for now
     const post = models.Post.deserializeBinary(buffer)
-    const posts = this.state.posts.push(post)
 
-    this.setState({
-      posts
-    })
+    this.addPost(post)
   }
 
   closeStream () {
@@ -87,17 +84,21 @@ class Timeline extends Component {
       })
       .then(buffer => {
         const post = models.Post.deserializeBinary(buffer)
-        const posts = this.state.posts.push(post)
 
         this.setState({
-          loading: false,
-          posts
+          loading: false
         })
+        this.addPost(post)
       })
       .catch(err => {
         console.log(err)
         throw err
       })
+  }
+
+  addPost (post) {
+    const posts = this.state.posts.push(post)
+    this.setState({posts})
   }
 
   render() {

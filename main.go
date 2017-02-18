@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/julienschmidt/httprouter"
 	"github.com/zjjw/txt/api"
-	"github.com/zjjw/txt/models"
 	"log"
 	"net/http"
 	"time"
@@ -19,11 +18,11 @@ func CORS(handler http.Handler) http.Handler {
 }
 
 func AddContext(handler http.Handler) http.Handler {
-	// A message has a post that has been created.
-	created := make(chan *models.Post)
+	hub := api.NewHub()
+	go hub.Run()
 
 	wrapped := func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), "created_chan", created)
+		ctx := context.WithValue(r.Context(), "hub", hub)
 		handler.ServeHTTP(w, r.WithContext(ctx))
 	}
 	return http.HandlerFunc(wrapped)

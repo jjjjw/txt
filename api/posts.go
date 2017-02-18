@@ -68,11 +68,11 @@ func NewPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		log.Fatal(writeErr)
 	}
 
-	cp, ok := r.Context().Value("created_chan").(chan *models.Post)
+	hub, ok := r.Context().Value("hub").(*Hub)
 	if ok == false {
-		log.Fatal("Failed to get channel")
+		log.Fatal("Failed to get hub")
 	}
 
 	// Add to the created posts channel
-	cp <- post
+	hub.broadcast <- data
 }

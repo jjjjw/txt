@@ -1,11 +1,10 @@
-package api_test
+package api
 
 import (
 	"bytes"
 	"context"
 	"github.com/golang/protobuf/proto"
 	"github.com/julienschmidt/httprouter"
-	"github.com/zjjw/txt/api"
 	"github.com/zjjw/txt/models"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +18,7 @@ func TestGetPost(t *testing.T) {
 	req := httptest.NewRequest("GET", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 
-	api.GetPost(w, req, ps)
+	GetPost(w, req, ps)
 
 	t.Logf("%d - %s", w.Code, w.Body.String())
 
@@ -49,7 +48,7 @@ func TestGetPosts(t *testing.T) {
 	req := httptest.NewRequest("GET", "http://example.com/foo", nil)
 	w := httptest.NewRecorder()
 
-	api.GetPosts(w, req, ps)
+	GetPosts(w, req, ps)
 
 	t.Logf("%d - %s", w.Code, w.Body.String())
 
@@ -89,21 +88,28 @@ func TestNewPost(t *testing.T) {
 	req := httptest.NewRequest("POST", "http://example.com/foo", r)
 	w := httptest.NewRecorder()
 
-	created := make(chan *models.Post)
+	hub := NewHub()
+	go hub.Run()
 
-	ctx := context.WithValue(req.Context(), "created_chan", created)
+	ctx := context.WithValue(req.Context(), "hub", hub)
 
 	// Create the post
-	go func() { api.NewPost(w, req.WithContext(ctx), ps) }()
+	go func() { NewPost(w, req.WithContext(ctx), ps) }()
 
 	// Wait for the created message
-	message := <-created
+	message := <-hub.broadcast
 
-	if message.Id != "1" {
+	post := &models.Post{}
+	err := proto.Unmarshal(message, post)
+	if marshalErr != nil {
 		t.Fail()
 	}
 
-	if message.Contents != "hello world" {
+	if post.Id != "1" {
+		t.Fail()
+	}
+
+	if post.Contents != "hello world" {
 		t.Fail()
 	}
 
@@ -114,8 +120,8 @@ func TestNewPost(t *testing.T) {
 		t.Fail()
 	}
 
-	post := &models.Post{}
-	err := proto.Unmarshal(w.Body.Bytes(), post)
+	post = &models.Post{}
+	err = proto.Unmarshal(w.Body.Bytes(), post)
 
 	if err != nil {
 		t.Fail()
