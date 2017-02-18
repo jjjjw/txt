@@ -77,7 +77,7 @@ func TestGetPosts(t *testing.T) {
 func TestNewPost(t *testing.T) {
 	ps := httprouter.Params{}
 
-	sendPost := &models.Post{"1", "hello world"}
+	sendPost := &models.Post{"new", "hello world"}
 	data, marshalErr := proto.Marshal(sendPost)
 	if marshalErr != nil {
 		t.Fail()
@@ -105,7 +105,7 @@ func TestNewPost(t *testing.T) {
 		t.Fail()
 	}
 
-	if post.Id != "1" {
+	if post.Id == "new" {
 		t.Fail()
 	}
 
@@ -127,7 +127,7 @@ func TestNewPost(t *testing.T) {
 		t.Fail()
 	}
 
-	if post.Id != "1" {
+	if post.Id == "new" {
 		t.Fail()
 	}
 

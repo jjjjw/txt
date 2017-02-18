@@ -3,6 +3,7 @@ package api
 import (
 	"github.com/golang/protobuf/proto"
 	"github.com/julienschmidt/httprouter"
+	"github.com/satori/go.uuid"
 	"github.com/zjjw/txt/models"
 	"io/ioutil"
 	"log"
@@ -57,6 +58,9 @@ func NewPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if validationErr != nil {
 		log.Fatal(validationErr)
 	}
+
+	// Set the Id
+	post.Id = uuid.NewV4().String()
 
 	data, marshalErr := proto.Marshal(post)
 	if marshalErr != nil {

@@ -14,7 +14,8 @@ class Timeline extends Component {
 
     this.state = {
       loading: true,
-      posts: Immutable.List()
+      posts: Immutable.List(),
+      postIds: Immutable.Set()
     }
 
     this.newPost = this.newPost.bind(this)
@@ -73,7 +74,7 @@ class Timeline extends Component {
       loading: true
     })
 
-    const newPost = new models.Post(['self', contents])
+    const newPost = new models.Post(['new', contents])
 
     return fetch(`${SCHEME}${HOST}/api/posts`, {
         method: 'POST',
@@ -97,8 +98,14 @@ class Timeline extends Component {
   }
 
   addPost (post) {
-    const posts = this.state.posts.push(post)
-    this.setState({posts})
+    this.setState(state => {
+      if (!state.postIds.has(post.getId())) {
+        return {
+          posts: state.posts.push(post),
+          postIds: state.postIds.add(post.getId())
+        }
+      }
+    })
   }
 
   render() {
