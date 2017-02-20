@@ -1,8 +1,10 @@
 package api
 
 import (
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/julienschmidt/httprouter"
+	"github.com/zjjw/txt/models"
 	"log"
 	"net/http"
 	"time"
@@ -39,8 +41,8 @@ type Client struct {
 	// The websocket connection.
 	conn *websocket.Conn
 
-	// Buffered channel of outbound messages.
-	send chan []byte
+	// Buffered channel of created posts.
+	created chan []byte
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -80,7 +82,7 @@ func (c *Client) writePump() {
 	}()
 	for {
 		select {
-		case message, ok := <-c.send:
+		case message, ok := <-c.created:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				// The hub closed the channel.
@@ -92,15 +94,40 @@ func (c *Client) writePump() {
 			if err != nil {
 				return
 			}
-			w.Write(message)
 
-			// Add queued messages to the current websocket message.
-			// TODO: multiple message types for this
-			// n := len(c.send)
-			// for i := 0; i < n; i++ {
-			// 	w.Write(newline)
-			// 	w.Write(<-c.send)
-			// }
+			posts := make([]*models.Post, len(c.created)+1)
+
+			first := &models.Post{}
+			validationErr := proto.Unmarshal(message, first)
+			if validationErr != nil {
+				log.Fatal(validationErr)
+			}
+
+			posts[0] = first
+
+			n := len(c.created) + 1
+			for i := 1; i < n; i++ {
+				post := &models.Post{}
+				validationErr := proto.Unmarshal(message, post)
+				if validationErr != nil {
+					log.Fatal(validationErr)
+				}
+				posts[i] = post
+			}
+
+			notification := &models.Notification{
+				Type: 0,
+				Posts: &models.Posts{
+					Posts: posts,
+				},
+			}
+
+			data, marshalErr := proto.Marshal(notification)
+			if marshalErr != nil {
+				log.Fatal(marshalErr)
+			}
+
+			w.Write(data)
 
 			if err := w.Close(); err != nil {
 				return
@@ -126,7 +153,7 @@ func WS(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		log.Fatal("Failed to get hub")
 	}
 
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hub, conn: conn, created: make(chan []byte, 256)}
 	client.hub.register <- client
 	go client.writePump()
 	client.readPump()

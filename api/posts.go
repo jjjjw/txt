@@ -78,5 +78,5 @@ func NewPost(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	// Add to the created posts channel
-	hub.broadcast <- data
+	hub.created <- data
 }

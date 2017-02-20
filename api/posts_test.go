@@ -97,7 +97,7 @@ func TestNewPost(t *testing.T) {
 	go func() { NewPost(w, req.WithContext(ctx), ps) }()
 
 	// Wait for the created message
-	message := <-hub.broadcast
+	message := <-hub.created
 
 	post := &models.Post{}
 	err := proto.Unmarshal(message, post)

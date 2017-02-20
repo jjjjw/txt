@@ -54,12 +54,13 @@ class Timeline extends Component {
   }
 
   onMessage (event) {
-    const buffer = event.data
+    const notification = models.Notification.deserializeBinary(event.data)
 
-    // Only one message type for now
-    const post = models.Post.deserializeBinary(buffer)
-
-    this.addPost(post)
+    if (notification.hasPosts()) {
+      notification.getPosts().getPostsList().forEach(post => {
+        this.addPost(post)
+      })
+    }
   }
 
   closeStream () {

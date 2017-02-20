@@ -10,3 +10,16 @@ message Post {
 message Posts {
   repeated Post posts = 1;
 }
+
+// Send a websocket notification with some data
+message Notification {
+  enum Type { POSTS = 0; }
+
+  // Identifies which field is filled in.
+  Type type = 1;
+
+  // One of the following will be filled in.
+  Posts posts = 2;
+
+  // ...
+}
