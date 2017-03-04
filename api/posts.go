@@ -13,7 +13,7 @@ import (
 func GetPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	post := &models.Post{
 		Id:       ps.ByName("id"),
-		Contents: "hello world",
+		Contents: models.HelloWorldPost.GetContents(),
 	}
 
 	data, marshalErr := proto.Marshal(post)
@@ -30,7 +30,7 @@ func GetPost(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func GetPosts(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	posts := &models.Posts{
 		Posts: []*models.Post{
-			{"1", "hello world"},
+			models.HelloWorldPost,
 		},
 	}
 

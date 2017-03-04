@@ -32,12 +32,10 @@ class Timeline extends Component {
         return res.arrayBuffer()
       })
       .then(buffer => {
-        let posts = models.Posts.deserializeBinary(buffer).getPostsList()
-        posts = this.state.posts.push(...posts)
+        this.addPosts(models.Posts.deserializeBinary(buffer).getPostsList())
 
         this.setState({
-          loading: false,
-          posts
+          loading: false
         })
       })
       .catch(err => {
@@ -57,9 +55,7 @@ class Timeline extends Component {
     const notification = models.Notification.deserializeBinary(event.data)
 
     if (notification.hasPosts()) {
-      notification.getPosts().getPostsList().forEach(post => {
-        this.addPost(post)
-      })
+      this.addPosts(notification.getPosts().getPostsList())
     }
   }
 
@@ -70,12 +66,19 @@ class Timeline extends Component {
     }
   }
 
-  newPost (contents) {
+  newPost (contentState) {
     this.setState({
       loading: true
     })
 
-    const newPost = new models.Post(['new', contents])
+    const newPost = new models.Post([
+      'new',
+      [
+        contentState.getBlockMap().map(block =>
+          [block.getKey(), block.getText()]
+        ).toArray()
+      ]
+    ])
 
     return fetch(`${SCHEME}${HOST}/api/posts`, {
         method: 'POST',
@@ -86,11 +89,11 @@ class Timeline extends Component {
       })
       .then(buffer => {
         const post = models.Post.deserializeBinary(buffer)
+        this.addPosts([post])
 
         this.setState({
           loading: false
         })
-        this.addPost(post)
       })
       .catch(err => {
         console.log(err)
@@ -98,13 +101,14 @@ class Timeline extends Component {
       })
   }
 
-  addPost (post) {
+  addPosts (posts) {
     this.setState(state => {
-      if (!state.postIds.has(post.getId())) {
-        return {
-          posts: state.posts.push(post),
-          postIds: state.postIds.add(post.getId())
-        }
+      // Check that we don't already have the post
+      posts = posts.filter(post => !state.postIds.has(post.getId()))
+
+      return {
+        posts: state.posts.unshift(...posts),
+        postIds: state.postIds.add(...posts.map(post => post.getId()))
       }
     })
   }

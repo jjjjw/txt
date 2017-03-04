@@ -1,0 +1,17 @@
+.Timeline {
+  margin: 0 auto;
+  max-width: 600px;
+}
+
+.Posts {
+  list-style-type: none;
+  -webkit-padding-start: 0;
+}
+
+.Post {
+  border: 1px solid #eee;
+  font-size: 14px;
+  margin: 5px 0;
+  padding: 10px;
+  text-align: left;
+}

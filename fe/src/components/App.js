@@ -5,7 +5,7 @@ function App (props) {
   return (
     <div className='App'>
       <div>
-        <h2>Welcome</h2>
+        <h2 className='title'>Welcome to the Machine</h2>
       </div>
       {props.children}
     </div>

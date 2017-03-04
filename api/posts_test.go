@@ -33,11 +33,11 @@ func TestGetPost(t *testing.T) {
 		t.Fail()
 	}
 
-	if post.Id != "1" {
+	if post.GetId() != "1" {
 		t.Fail()
 	}
 
-	if post.Contents != "hello world" {
+	if post.GetContents().GetBlocks()[0].GetKey() != models.HelloWorldPost.GetContents().GetBlocks()[0].GetKey() {
 		t.Fail()
 	}
 }
@@ -65,11 +65,11 @@ func TestGetPosts(t *testing.T) {
 
 	post := posts.Posts[0]
 
-	if post.Id != "1" {
+	if post.GetId() != models.HelloWorldPost.GetId() {
 		t.Fail()
 	}
 
-	if post.Contents != "hello world" {
+	if post.GetContents().GetBlocks()[0].GetKey() != models.HelloWorldPost.GetContents().GetBlocks()[0].GetKey() {
 		t.Fail()
 	}
 }
@@ -77,8 +77,7 @@ func TestGetPosts(t *testing.T) {
 func TestNewPost(t *testing.T) {
 	ps := httprouter.Params{}
 
-	sendPost := &models.Post{"new", "hello world"}
-	data, marshalErr := proto.Marshal(sendPost)
+	data, marshalErr := proto.Marshal(models.HelloWorldPost)
 	if marshalErr != nil {
 		t.Fail()
 	}
@@ -105,11 +104,11 @@ func TestNewPost(t *testing.T) {
 		t.Fail()
 	}
 
-	if post.Id == "new" {
+	if post.GetId() == models.HelloWorldPost.GetId() {
 		t.Fail()
 	}
 
-	if post.Contents != "hello world" {
+	if post.GetContents().GetBlocks()[0].GetKey() != models.HelloWorldPost.GetContents().GetBlocks()[0].GetKey() {
 		t.Fail()
 	}
 
@@ -127,11 +126,11 @@ func TestNewPost(t *testing.T) {
 		t.Fail()
 	}
 
-	if post.Id == "new" {
+	if post.GetId() == models.HelloWorldPost.GetId() {
 		t.Fail()
 	}
 
-	if post.Contents != "hello world" {
+	if post.GetContents().GetBlocks()[0].GetKey() != models.HelloWorldPost.GetContents().GetBlocks()[0].GetKey() {
 		t.Fail()
 	}
 }

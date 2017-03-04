@@ -1,58 +1,29 @@
-import React, { Component } from 'react'
-import './App.css'
+import PostEditor from './PostEditor'
+import React from 'react'
 
-class PostEditor extends Component {
-  constructor(props) {
-    super(props)
-
-    this.state = {
-      contents: ''
-    }
-
-    this.handleChange = this.handleChange.bind(this)
-    this.handleSubmit = this.handleSubmit.bind(this)
-  }
-  render () {
-    return (
-      <form onSubmit={this.handleSubmit}>
-        <label>
-          New Post:
-          <input type='text' value={this.state.contents} onChange={this.handleChange} />
-        </label>
-        <input type='submit' value='Submit' />
-      </form>
-    )
-  }
-
-  handleSubmit (ev) {
-    ev.preventDefault()
-    this.props.newPost(this.state.contents)
-  }
-
-  handleChange (ev) {
-    this.setState({
-      contents: ev.currentTarget.value
-    })
-  }
-}
+import './Timeline.css'
 
 function Posts (props) {
   return (
-    <div>
-      {props.posts.map((post, ii) => {
-        return (
-          <div key={ii}>
-            {post.getContents()}
-          </div>
-        )
-      })}
-    </div>
+    <ul className='Posts'>
+      {props.posts.map(post => <Post key={post.getId()} post={post} />)}
+    </ul>
+  )
+}
+
+function Post (props) {
+  return (
+    <li className='Post'>
+      {props.post.getContents().getBlocksList().map(block =>
+        <div key={block.getKey()}>{block.getText()}</div>
+      )}
+    </li>
   )
 }
 
 function Timeline (props) {
   return (
-    <div>
+    <div className='Timeline'>
       <PostEditor newPost={props.newPost} />
       <Posts posts={props.posts} />
     </div>
